@@ -1,0 +1,15 @@
+# IP y puerto para conexion con el server
+server_addr: 192.168.24.1
+server_port: 10601
+
+# Información para el logger.
+log:
+  filename: client_interaction.log
+  level: INFO
+  format: '%(asctime)s %(levelname)s: %(message)s'
+
+# Información del usuario client
+client_name: wjperez.12
+
+# Puerto TCP para Response
+tcp_port: 15006

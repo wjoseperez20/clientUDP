@@ -1,0 +1,12 @@
+2020-05-30 16:51:38,609 INFO: Iniciando servidor en 127.0.0.1:10601
+2020-05-30 16:59:44,819 INFO: Iniciando servidor en 127.0.0.1:10601
+2020-05-30 17:02:07,668 INFO: Iniciando servidor en 127.0.0.1:10601
+2020-05-30 17:16:35,843 INFO: Inicio de conexión desde 127.0.0.1:51578
+2020-05-30 17:19:13,088 WARNING: Comando (helloiam) desde 127.0.0.1:51578
+2020-05-30 17:19:13,088 INFO: NOOK (invalid user name) desde 127.0.0.1:51578
+2020-05-30 17:19:13,088 INFO: Fin de conexión desde 127.0.0.1:51578
+2020-05-30 17:19:22,637 INFO: Inicio de conexión desde 127.0.0.1:51584
+2020-05-30 17:19:33,332 WARNING: Comando (helloiam) desde 127.0.0.1:51584
+2020-05-30 17:20:30,228 WARNING: Comando (msglen) desde 127.0.0.1:51584
+2020-05-30 17:20:55,408 WARNING: Comando (givememsg) desde 127.0.0.1:51584
+2020-05-30 18:05:23,940 INFO: Fin de conexión desde 127.0.0.1:51584
