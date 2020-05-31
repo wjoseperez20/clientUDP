@@ -1,4 +1,4 @@
-# clientTCP
+# clientUDP
 
 Cliente que permite la comunicacion con el server host en la VPN UCAB. Este codigo es para uso en la práctica 3 de curso de Sistemas Distribuidos.
 

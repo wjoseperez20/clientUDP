@@ -2,14 +2,14 @@
 """
 Copyright (C) 2020 Wilmer Perez <wjperez.12@est.ucab.edu.ve>
 
-This file is part of clientTCP.
+This file is part of clientUDP.
 
-clientTCP is free software: you can redistribute it and/or modify
+clientUDP is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
-clientTCP is distributed in the hope that it will be useful,
+clientUDP is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
