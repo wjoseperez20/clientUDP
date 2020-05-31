@@ -17,7 +17,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 """
-from multiprocessing import Process, Pipe
+from threading import Thread
+from queue import Queue
 from .config import Config
 from hashlib import md5
 import logging
@@ -37,7 +38,23 @@ class Client:
             self.__conf = Config()
         return self.__conf
 
-    def sender(self, s_conn, message):
+    def command_case(self, argument, argument_2=''):
+        # region Variables
+        tn_username = self.config.client_name
+        udp_port = self.config.local_udp_port
+        # endregion
+
+        switcher = {
+            1: ("helloiam " + tn_username),
+            2: "msglen",
+            3: ("givememsg " + str(udp_port)),
+            4: ("chkmsg " + argument_2),
+            5: "bye"
+        }
+
+        return switcher.get(argument, "Invalid Command Id").encode('utf-8')
+
+    def tcp_sender(self, s_conn, message):
         # region Variables
         response_bool = False
         response = []
@@ -66,25 +83,7 @@ class Client:
 
         return response, response_bool
 
-    def command_case(self, argument, argument_2=None):
-        # region Variables
-        if argument_2 is None:
-            argument_2 = []
-        tn_username = self.config.client_name
-        udp_port = self.config.local_udp_port
-        # endregion
-
-        switcher = {
-            1: ("helloiam " + tn_username),
-            2: ("msglen " + argument_2),
-            3: ("givememsg " + str(udp_port)),
-            4: ("chkmsg " + argument_2),
-            5: "bye"
-        }
-
-        return switcher.get(argument, "Invalid Command Id").encode('utf-8')
-
-    def socket_director(self):
+    def socket_producer(self, out_q):
         # region Variables
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tn_port = self.config.server_port
@@ -94,21 +93,22 @@ class Client:
         # endregion
 
         # region Instrumentation
-        logging.info('Iniciando cliente - Conexion con %s' % tn_ip)
+        logging.info('Iniciando socket_producer - Conexion con %s' % tn_ip)
         # endregion
 
         try:
+
             s.connect((tn_ip, tn_port))
 
             for i in range(1, 6):
 
                 if i != 3 and i != 4 and result:
-                    result_text, result = self.sender(s, self.command_case(i))
+                    result_text, result = self.tcp_sender(s, self.command_case(i))
                 elif i == 3 and result:
-                    sock_udp = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
-                    result_text, result = self.sender(s, self.command_case(i, result_text[1]))
+                    result_text, result = self.tcp_sender(s, self.command_case(i, result_text[1]))
+                    out_q.put(result_text)
                 elif i == 4 and result:
-                    result_text, result = self.sender(s, self.command_case(i))
+                    result_text, result = self.tcp_sender(s, self.command_case(i))
                 else:
                     s.close()
                     break
@@ -120,13 +120,42 @@ class Client:
             # endregion
 
         # region Instrumentation
-        logging.info('Cerrando cliente - Conexion con %s' % tn_ip)
+        logging.info('Cerrando socket_producer - Conexion con %s' % tn_ip)
+        # endregion
+
+    def socket_consumer(self, in_q):
+        # region Variables
+        local_port = self.config.local_udp_port
+        local_host = self.config.local_host
+        # endregion
+
+        # region Instrumentation
+        logging.info('Iniciando socket_consumer udp %s:%s' % (local_host, local_port))
+        # endregion
+
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            s.bind((local_host, local_port))
+
+            while True:
+                (data, addr) = s.recvfrom(128 * 1024)
+                print(data)
+
+        except Exception as e:
+            # region Instrumentation
+            logging.error("Error en socket_consumer %s" % e)
+            # endregion
+
+        # region Instrumentation
+        logging.info('Cerrando socket_consumer')
         # endregion
 
     def start(self):
-        """
-        Inicio de la ejecución del client
-        """
+        # region Variables
+        q = Queue()
+        # endregion
 
         # region Config_Instrumentation
         logging.basicConfig(
@@ -136,9 +165,9 @@ class Client:
         )
         # endregion
 
-        self.socket_director()
+        t1 = Thread(target=self.socket_consumer, args=(q,))
+        t2 = Thread(target=self.socket_producer, args=(q,))
+        t1.start()
+        t2.start()
 
-        """
-        Fin de la ejecución del client
-        """
         return 0
