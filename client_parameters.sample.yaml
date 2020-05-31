@@ -1,5 +1,5 @@
 # IP y puerto para conexion con el server
-server_addr: 107.0.0.1
+server_addr: 127.0.0.1
 server_port: 10601
 
 # Información para el logger.

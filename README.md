@@ -24,7 +24,7 @@ Clonar el repositorio
 
 ```
 $ git clone https://github.com/wjoseperez20/clientUDP.git
-$ cd clientTCP
+$ cd clientUDP
 ```
 
 Es necesario generar el archivo `client_parameters.yaml`. El archivo

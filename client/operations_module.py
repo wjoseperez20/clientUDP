@@ -46,21 +46,23 @@ class Client:
         # endregion
 
         # region Instrumentation
-        logging.info('Iniciando cliente - Conexion con %s:%s' % tn_ip)
+        logging.info('Iniciando cliente - Conexion con %s' % tn_ip)
         # endregion
 
         try:
             s.connect((tn_ip, tn_port))
-
+            s.sendall(b'Hello, world')
+            data = s.recv(1024)
+            print('Received', repr(data))
 
         except OSError:
             s.close()
             # region Instrumentation
-            logging.error("Error al conectar via telnet con el servidor: " + tn_ip)
+            logging.error("Error al conectar via telnet con el servidor: %s" % tn_ip)
             # endregion
 
         # region Instrumentation
-        logging.info('Cerrando cliente - Conexion con %s:%s' % tn_ip)
+        logging.info('Cerrando cliente - Conexion con %s' % tn_ip)
         # endregion
 
     def start(self):
