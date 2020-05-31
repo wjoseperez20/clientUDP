@@ -23,13 +23,13 @@ Cliente que permite la comunicacion con el server host en la VPN UCAB. Este codi
 Clonar el repositorio
 
 ```
-$ git clone https://github.com/wjoseperez20/clientTCP.git
+$ git clone https://github.com/wjoseperez20/clientUDP.git
 $ cd clientTCP
 ```
 
 Es necesario generar el archivo `client_parameters.yaml`. El archivo
-[`client_parameters.sample.yaml`](https://github.com/wjoseperez20/clientTCP/blob/master/client_parameters.sample.yaml)
-coniene un ejemplo del contenido.
+[`client_parameters.sample.yaml`](https://github.com/wjoseperez20/clientUDP/blob/master/client_parameters.sample.yaml)
+contiene un ejemplo del contenido.
 
 ```
 $ cp client_parameters.sample.yaml client_parameters.yaml
