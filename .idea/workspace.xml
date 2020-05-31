@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="522c4337-7148-45f3-bc7a-bb3f3bd47cc5" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/client_parameters.sample.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client/operations_module.py" beforeDir="false" afterPath="$PROJECT_DIR$/client/operations_module.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client_conn.py" beforeDir="false" afterPath="$PROJECT_DIR$/client_conect.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/client_parameters.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/client_parameters.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -24,6 +29,11 @@
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
   </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
   <component name="SvnConfiguration">
     <configuration />
   </component>
@@ -35,6 +45,7 @@
       <option name="presentableId" value="Default" />
       <updated>1590878017262</updated>
       <workItem from="1590878018551" duration="7252000" />
+      <workItem from="1590895974296" duration="3243000" />
     </task>
     <servers />
   </component>

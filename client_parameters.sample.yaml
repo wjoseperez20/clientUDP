@@ -1,5 +1,5 @@
 # IP y puerto para conexion con el server
-server_ip: 107.0.0.1
+server_addr: 107.0.0.1
 server_port: 10601
 
 # Información para el logger.
@@ -11,5 +11,5 @@ log:
 # Información del usuario client
 client_name: wjperez.12
 
-# Puerto UDP para Response
-local_udp_port: 15006
+# Puerto TCP para Response
+tcp_port: 15006

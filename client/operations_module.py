@@ -17,12 +17,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 """
-import sys
-import telnetlib
-import logging
-from hashlib import md5
-import base64
 from .config import Config
+from hashlib import md5
+import logging
+import socket
+import base64
+import sys
 
 
 class Client:
@@ -36,11 +36,13 @@ class Client:
             self.__conf = Config()
         return self.__conf
 
-    def telnet(self):
+    def socket_director(self):
         # region Variables
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tn_username = self.config.client_name
-        tn_port = self.config.bind_port
-        tn_ip = self.config.bind_addr
+        udp_port = self.config.local_udp_port
+        tn_port = self.config.server_port
+        tn_ip = self.config.server_ip
         # endregion
 
         # region Instrumentation
@@ -48,18 +50,18 @@ class Client:
         # endregion
 
         try:
-            tn_conn = telnetlib.Telnet(tn_ip, tn_port, 15)
+            s.connect((tn_ip, tn_port))
 
-            tn_conn.set_debuglevel(100)
-            tn_conn.read_until("No se que onda XD")
-            tn_conn.write(tn_username + "\n")
 
-        except:
-            logging.error("Unable to connect to Telnet server: " + tn_ip)
-
+        except OSError:
+            s.close()
             # region Instrumentation
-            logging.info('Cerrando cliente - Conexion con %s:%s' % tn_ip)
+            logging.error("Error al conectar via telnet con el servidor: " + tn_ip)
             # endregion
+
+        # region Instrumentation
+        logging.info('Cerrando cliente - Conexion con %s:%s' % tn_ip)
+        # endregion
 
     def start(self):
         """
@@ -74,7 +76,7 @@ class Client:
         )
         # endregion
 
-        self.telnet()
+        self.socket_director()
 
         """
         Fin de la ejecución del client

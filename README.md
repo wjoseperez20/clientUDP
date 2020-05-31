@@ -27,8 +27,16 @@ $ git clone https://github.com/wjoseperez20/clientTCP.git
 $ cd clientTCP
 ```
 
+Es necesario generar el archivo `client_parameters.yaml`. El archivo
+[`client_parameters.sample.yaml`](https://github.com/wjoseperez20/clientTCP/blob/master/client_parameters.sample.yaml)
+coniene un ejemplo del contenido.
+
+```
+$ cp client_parameters.sample.yaml client_parameters.yaml
+```
+
 Ejecución:
 
 ```
-$ ./client_conn.py
+$ ./client_conect.py
 ```

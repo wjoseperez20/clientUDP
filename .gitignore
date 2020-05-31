@@ -1,0 +1,7 @@
+.project
+.pydevproject
+.vscode
+*.pyc
+*.log
+!**/__pycache__/
+client_parameters.yaml
