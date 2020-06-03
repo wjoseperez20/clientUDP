@@ -150,7 +150,7 @@ class Client:
 
                     if result:
                         result_text, result = self.tcp_sender(s_conn, self.command_case(5))
-                        print('Su mensaje es:' + msg_str)
+                        print('Su mensaje es: ' + msg_str)
                         s_conn.close()
                         break
                     else:
@@ -234,6 +234,7 @@ class Client:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         tn_port = self.config.server_port
         tn_ip = self.config.server_ip
+        s.settimeout(10)
         # endregion
 
         # region Instrumentation
@@ -257,8 +258,9 @@ class Client:
                 s.close()
 
         except Exception as e:
+            s.close()
             # region Instrumentation
-            logging.error("Error en init_interaction - %s" % e)
+            logging.error("Error en init_interaction - socket %s" % e)
             # endregion
 
         # region Instrumentation
@@ -272,11 +274,11 @@ class Client:
         # region Config_Instrumentation
         logging.basicConfig(
             filename=self.config.log['filename'],
-            level=getattr(logging, self.config.log['info']),
+            level=getattr(logging, self.config.log['level']),
             format=self.config.log['format']
         )
         # endregion
 
         self.init_interaction()
 
-        exit(0)
+        exit(1)
