@@ -129,7 +129,7 @@ class Client:
     @param quede_channel (Quede) Cola de comunicacion entre hilos
     @param s_conn (Socket)
     """
-    def socket_producer(self, quede_channel: Queue, s_conn: socket):
+    def socket_producer(self, quede_channel_in: Queue, quede_channel_out: Queue, s_conn: socket):
 
         # region Instrumentation
         logging.info('Entrando en socket_producer')
@@ -142,7 +142,7 @@ class Client:
                 result_text, result = self.tcp_sender(s_conn, self.command_case(3))
 
                 # DATA THREAD UDP
-                data = quede_channel.get()
+                data = quede_channel_in.get()
                 msg_str, checksum = self.udp_decryptor(data)
 
                 if checksum:
@@ -151,9 +151,11 @@ class Client:
                     if result:
                         result_text, result = self.tcp_sender(s_conn, self.command_case(5))
                         print('Su mensaje es: ' + msg_str)
+                        quede_channel_out.put('quit')
                         s_conn.close()
                         break
                     else:
+                        quede_channel_out.put('Keep')
                         print('CheckSum Incorrecto')
                         n = n + 1
                 else:
@@ -173,7 +175,7 @@ class Client:
     @param quede_channel (Quede) Cola de comunicacion entre hilos
     @param msg_length (int) Tamaño del mensaje a recibir por sockect
     """
-    def socket_consumer(self, quede_channel: Queue, msg_length: int):
+    def socket_consumer(self, quede_channel_in: Queue, quede_channel_out: Queue, msg_length: int):
 
         # region Variables
         local_port = self.config.local_udp_port
@@ -192,7 +194,11 @@ class Client:
 
             while True:
                 (data, addr) = s.recvfrom(msg_length * 1024)
-                quede_channel.put(data)
+                quede_channel_in.put(data)
+                msg = quede_channel_out.get()
+
+                if msg == 'quit':
+                    break
 
         except Exception as e:
             # region Instrumentation
@@ -210,13 +216,14 @@ class Client:
     """
     def socket_director(self, s_conn: socket, msg_length: int):
         # region Variables
-        queue = Queue()
+        queue_in = Queue()
+        queue_out = Queue()
         # endregion
 
         try:
 
-            t1 = Thread(target=self.socket_consumer, args=(queue, int(msg_length)))
-            t2 = Thread(target=self.socket_producer, args=(queue, s_conn))
+            t1 = Thread(target=self.socket_consumer, args=(queue_in, queue_out, int(msg_length)))
+            t2 = Thread(target=self.socket_producer, args=(queue_in, queue_out, s_conn))
             t1.start()
             t2.start()
 
