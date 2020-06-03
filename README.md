@@ -37,6 +37,11 @@ $ cp client_parameters.sample.yaml client_parameters.yaml
 
 Ejecución:
 
+Se ejecuta con versiones de python 3 en adelante
 ```
-$ ./client_conect.py
+python3 client_conect.py 
+
+o 
+
+$ ./client_conect.py (Default python > v3)
 ```
