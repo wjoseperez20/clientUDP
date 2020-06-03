@@ -17,14 +17,19 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with Foobar.  If not, see <https://www.gnu.org/licenses/>.
 """
+
+# region Imports
 from threading import Thread
-from queue import Queue
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 from .config import Config
 from hashlib import md5
 import logging
 import socket
 import base64
-
+# endregion
 
 class Client:
 
@@ -43,7 +48,7 @@ class Client:
     @param argument_2 (any)
     @return: comando en formato de bytes
     """
-    def command_case(self, argument: int, argument_2=''):
+    def command_case(self, argument, argument_2=''):
         # region Variables
         tn_username = self.config.client_name
         udp_port = self.config.local_udp_port
@@ -129,7 +134,7 @@ class Client:
     @param quede_channel (Quede) Cola de comunicacion entre hilos
     @param s_conn (Socket)
     """
-    def socket_producer(self, quede_channel_in: Queue, quede_channel_out: Queue, s_conn: socket):
+    def socket_producer(self, quede_channel_in, quede_channel_out, s_conn):
 
         # region Instrumentation
         logging.info('Entrando en socket_producer')
@@ -175,7 +180,7 @@ class Client:
     @param quede_channel (Quede) Cola de comunicacion entre hilos
     @param msg_length (int) Tamaño del mensaje a recibir por sockect
     """
-    def socket_consumer(self, quede_channel_in: Queue, quede_channel_out: Queue, msg_length: int):
+    def socket_consumer(self, quede_channel_in, quede_channel_out, msg_length):
 
         # region Variables
         local_port = self.config.local_udp_port
@@ -214,7 +219,7 @@ class Client:
     @param s_conn (socket) Socket TCP creado previamente
     @param msg_length (int) Tamaño del mensaje a recibir por sockect UDP
     """
-    def socket_director(self, s_conn: socket, msg_length: int):
+    def socket_director(self, s_conn, msg_length):
         # region Variables
         queue_in = Queue()
         queue_out = Queue()
