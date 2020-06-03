@@ -24,7 +24,6 @@ from hashlib import md5
 import logging
 import socket
 import base64
-import sys
 
 
 class Client:
@@ -38,7 +37,13 @@ class Client:
             self.__conf = Config()
         return self.__conf
 
-    def command_case(self, argument, argument_2=''):
+    """
+    @doc: Diccionario de Comandos para el server
+    @param argument (int) - id del comando
+    @param argument_2 (any)
+    @return: comando en formato de bytes
+    """
+    def command_case(self, argument: int, argument_2=''):
         # region Variables
         tn_username = self.config.client_name
         udp_port = self.config.local_udp_port
@@ -54,6 +59,12 @@ class Client:
 
         return switcher.get(argument, "Invalid Command Id").encode('utf-8')
 
+    """
+    @doc: Se encarga de enviar mensaje via TCP
+    @param s_conn (Socket TCP) - objeto socket actual
+    @param message (string)
+    @return: Respuesta del servidor y un booleano si la respuesta es OK
+    """
     def tcp_sender(self, s_conn, message):
         # region Variables
         response_bool = False
@@ -83,47 +94,87 @@ class Client:
 
         return response, response_bool
 
-    def socket_producer(self, out_q):
+    """
+    @doc: Desencripta un mensaje en base64 y calcula sus hash md5
+    @param base64_message (bytes)
+    @return: checksum del 
+    """
+    def udp_decryptor(self, base64_message):
         # region Variables
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tn_port = self.config.server_port
-        tn_ip = self.config.server_ip
-        result_text = []
-        result = True
+        msg_decode = ''
+        check_sum = ''
         # endregion
 
         # region Instrumentation
-        logging.info('Iniciando socket_producer - Conexion con %s' % tn_ip)
+        logging.info('Entrando en udp_decryptor')
+        # endregion
+
+        try:
+            msg_decode = base64.b64decode(base64_message)
+            check_sum = md5(msg_decode).digest().hex()
+
+        except OSError:
+            # region Instrumentation
+            logging.error('Error en udp_decryptor - desencriptando el mensaje')
+            # endregion
+
+        # region Instrumentation
+        logging.info('Saliendo de udp_decryptor msg: %s | check_sum: %s', msg_decode, check_sum)
+        # endregion
+
+        return msg_decode.decode('utf-8')[:-1], check_sum
+
+    """
+    @doc: Hilo que se encarga de comunicarse con el servidor via TCP
+    @param quede_channel (Quede) Cola de comunicacion entre hilos
+    @param s_conn (Socket)
+    """
+    def socket_producer(self, quede_channel: Queue, s_conn: socket):
+
+        # region Instrumentation
+        logging.info('Entrando en socket_producer')
         # endregion
 
         try:
 
-            s.connect((tn_ip, tn_port))
+            n = 0
+            while n < 5:
+                result_text, result = self.tcp_sender(s_conn, self.command_case(3))
 
-            for i in range(1, 6):
+                # DATA THREAD UDP
+                data = quede_channel.get()
+                msg_str, checksum = self.udp_decryptor(data)
 
-                if i != 3 and i != 4 and result:
-                    result_text, result = self.tcp_sender(s, self.command_case(i))
-                elif i == 3 and result:
-                    result_text, result = self.tcp_sender(s, self.command_case(i, result_text[1]))
-                    out_q.put(result_text)
-                elif i == 4 and result:
-                    result_text, result = self.tcp_sender(s, self.command_case(i))
+                if checksum:
+                    result_text, result = self.tcp_sender(s_conn, self.command_case(4, checksum))
+
+                    if result:
+                        result_text, result = self.tcp_sender(s_conn, self.command_case(5))
+                        print('Su mensaje es:' + msg_str)
+                        s_conn.close()
+                        break
+                    else:
+                        print('CheckSum Incorrecto')
+                        n = n + 1
                 else:
-                    s.close()
                     break
 
         except OSError:
-            s.close()
             # region Instrumentation
-            logging.error("Error al conectar via telnet con el servidor: %s" % tn_ip)
+            logging.error('Error en socket_producer - conexion al server')
             # endregion
 
         # region Instrumentation
-        logging.info('Cerrando socket_producer - Conexion con %s' % tn_ip)
+        logging.info('Saliendo socket_producer')
         # endregion
 
-    def socket_consumer(self, in_q):
+    """
+    @doc: Hilo que se queda en escucha en el puerto UDP y envia al hilo productor todo lo que recibe
+    @param quede_channel (Quede) Cola de comunicacion entre hilos
+    @param msg_length (int) Tamaño del mensaje a recibir por sockect
+    """
+    def socket_consumer(self, quede_channel: Queue, msg_length: int):
+
         # region Variables
         local_port = self.config.local_udp_port
         local_host = self.config.local_host
@@ -140,8 +191,8 @@ class Client:
             s.bind((local_host, local_port))
 
             while True:
-                (data, addr) = s.recvfrom(128 * 1024)
-                print(data)
+                (data, addr) = s.recvfrom(msg_length * 1024)
+                quede_channel.put(data)
 
         except Exception as e:
             # region Instrumentation
@@ -152,22 +203,80 @@ class Client:
         logging.info('Cerrando socket_consumer')
         # endregion
 
-    def start(self):
+    """
+    @doc: Crea los hilos y les asigna una cola de comunicacion
+    @param s_conn (socket) Socket TCP creado previamente
+    @param msg_length (int) Tamaño del mensaje a recibir por sockect UDP
+    """
+    def socket_director(self, s_conn: socket, msg_length: int):
         # region Variables
-        q = Queue()
+        queue = Queue()
         # endregion
 
+        try:
+
+            t1 = Thread(target=self.socket_consumer, args=(queue, int(msg_length)))
+            t2 = Thread(target=self.socket_producer, args=(queue, s_conn))
+            t1.start()
+            t2.start()
+
+        except Exception as e:
+            # region Instrumentation
+            logging.error("Error creando los hilos  %s" % e)
+            # endregion
+
+    """
+    @doc: Inicia la comunicacion con el server via TCP y se encarga de mandar a generar los hilos si el server acepta al
+    usuario registrado previamente, de lo contrario ciera la conexion y no se crean los hilos
+    """
+    def init_interaction(self):
+        # region Variables
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        tn_port = self.config.server_port
+        tn_ip = self.config.server_ip
+        # endregion
+
+        # region Instrumentation
+        logging.info('Entrando en init_interaction - conexion tcp %s:%s' % (tn_ip, tn_port))
+        # endregion
+
+        try:
+            s.connect((tn_ip, tn_port))
+
+            result_text, result = self.tcp_sender(s, self.command_case(1))
+
+            if result:
+                result_text, result = self.tcp_sender(s, self.command_case(2))
+
+                if result:
+                    self.socket_director(s, int(result_text[1]))
+                else:
+                    print('Ocurrio un error obteniendo el tamaño del mensaje')
+                    s.close()
+            else:
+                s.close()
+
+        except Exception as e:
+            # region Instrumentation
+            logging.error("Error en init_interaction - %s" % e)
+            # endregion
+
+        # region Instrumentation
+        logging.info('Saliendo de init_interaction - conexion tcp %s:%s' % (tn_ip, tn_port))
+        # endregion
+
+    """
+    @doc: Configura el loggin y inicia la comunicacion inicial en el hilo principal
+    """
+    def start(self):
         # region Config_Instrumentation
         logging.basicConfig(
             filename=self.config.log['filename'],
-            level=getattr(logging, self.config.log['level']),
+            level=getattr(logging, self.config.log['info']),
             format=self.config.log['format']
         )
         # endregion
 
-        t1 = Thread(target=self.socket_consumer, args=(q,))
-        t2 = Thread(target=self.socket_producer, args=(q,))
-        t1.start()
-        t2.start()
+        self.init_interaction()
 
-        return 0
+        exit(0)
