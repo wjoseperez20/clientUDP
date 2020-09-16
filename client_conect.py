@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2020 Wilmer Perez <wjperez.12@est.ucab.edu.ve>
+Copyright (C) 2020 Wilmer Perez / Arturo <wjperez.12@est.ucab.edu.ve>
 
 This file is part of clientUDP.
 
