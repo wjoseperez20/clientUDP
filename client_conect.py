@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Copyright (C) 2020 Wilmer Perez / Arturo <wjperez.12@est.ucab.edu.ve>
+Hola wilmer cómo estás mira ya aprendí a como manejar el trabajo colaborativo
 
 This file is part of clientUDP.
 
